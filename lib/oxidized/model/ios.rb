@@ -3,6 +3,8 @@ class IOS < Oxidized::Model
   prompt /^([\w.@()-]+[#>]\s?)$/
   comment  '! '
 
+and now
+
   # example how to handle pager
   #expect /^\s--More--\s+.*$/ do |data, re|
   #  send ' '
