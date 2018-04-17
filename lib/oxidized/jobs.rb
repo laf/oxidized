@@ -33,10 +33,17 @@ module Oxidized
     end
 
     def new_count
+      Oxidized.logger.info "new_count: Node size: %s, Duration: %s, Interval: %s" % [@nodes.size, @duration, @interval]
       @want = ((@nodes.size * @duration) / @interval).ceil
+      Oxidized.logger.info "New want 0: %s" % [@want]
+      @want = size if @want < size
+      Oxidized.logger.info "New want 1: %s" % [@want]
       @want = 1 if @want < 1
+      Oxidized.logger.info "New want 2: %s" % [@want]
       @want = @nodes.size if @want > @nodes.size
+      Oxidized.logger.info "New want 3: %s" % [@want]
       @want = @max if @want > @max
+      Oxidized.logger.info "New want 4: %s" % [@want]
     end
 
     def work
@@ -44,6 +51,7 @@ module Oxidized
       # and  b) we want less threads running than the total amount of nodes
       # and  c) there is more than MAX_INTER_JOB_GAP since last one was started
       # then we want one more thread (rationale is to fix hanging thread causing HOLB)
+      Oxidized.logger.info "Work check Want: %s, Size: %s, Node size: %s, Time: %s, Last: %s" % [@want, size, @nodes.size, Time.now.utc, @last]
       if @want <= size and @want < @nodes.size
         @want +=1 if (Time.now.utc - @last) > MAX_INTER_JOB_GAP
       end

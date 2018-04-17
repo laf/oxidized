@@ -12,10 +12,18 @@ module Oxidized
 
     def work
       ended = []
+      @jobs.each do |tmp|
+        Oxidized.logger.info "JOBS:: #{tmp.node.name} - #{tmp.alive?}"
+      end
       @jobs.delete_if { |job| ended << job if not job.alive? }
       ended.each      { |job| process job }
       @jobs.work
 
+      #@jobs.instance_variables.each { |ivar| Oxidized.logger.info "#{ivar}: #{@jobs.instance_variable_get(ivar)}" }
+      @nodes.each do |tmp|
+        Oxidized.logger.info "NODES:: #{tmp.name} - #{tmp.running?}" if tmp.running?
+      end
+      Oxidized.logger.info "lib/oxidized/worker.rb: Jobs running: #{@jobs.size} of #{@jobs.want} - ended: #{@jobs_done} of #{@nodes.size}"
       while @jobs.size < @jobs.want
         Oxidized.logger.debug "lib/oxidized/worker.rb: Jobs running: #{@jobs.size} of #{@jobs.want} - ended: #{@jobs_done} of #{@nodes.size}"
         # ask for next node in queue non destructive way
@@ -32,18 +40,21 @@ module Oxidized
         Oxidized.logger.debug "lib/oxidized/worker.rb: Added #{node.name} to the job queue"
       end
 
+      Oxidized.logger.info "is_cycle_finished #1 %s" % [is_cycle_finished?]
       run_done_hook if is_cycle_finished?
       Oxidized.logger.debug("lib/oxidized/worker.rb: #{@jobs.size} jobs running in parallel") unless @jobs.empty?
     end
 
     def process job
       node = job.node
+      Oxidized.logger.info "lib/oxidized/worker.rb: Node job: #{node.name}"
       node.last = job
       node.stats.add job
       @jobs.duration job.time
       node.running = false
       @jobs_done += 1 # needed for worker_done event
 
+      Oxidized.logger.info "JOB:: Name: #{node.name}, Status: #{job.status}"
       if job.status == :success
         Oxidized.Hooks.handle :node_success, :node => node,
                                              :job => job
@@ -80,7 +91,12 @@ module Oxidized
     private
 
     def is_cycle_finished?
-      @jobs_done > 0 && @jobs_done % @nodes.count == 0
+      Oxidized.logger.info "is_cycle_finished Jobs done: %s, Count: %s" % [@jobs_done, @nodes.count]
+      if @jobs_done > @nodes.count
+        true
+      else
+        @jobs_done > 0 && @jobs_done % @nodes.count == 0
+      end
     end
 
     def run_done_hook

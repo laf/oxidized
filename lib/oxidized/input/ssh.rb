@@ -29,7 +29,7 @@ module Oxidized
                 :port => port.to_i,
                 :password => @node.auth[:password], :timeout => Oxidized.config.timeout,
                 :paranoid => secure,
-                :auth_methods => %w(none publickey password keyboard-interactive),
+                :auth_methods => %w(none publickey password),
                 :number_of_password_prompts => 0,
         }
 

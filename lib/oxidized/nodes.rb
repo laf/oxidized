@@ -19,6 +19,7 @@ module Oxidized
           begin
             _node = Node.new node
             new.push _node
+            Oxidized.logger.info "Loading node %s" % [node]
           rescue ModelNotFound => err
             Oxidized.logger.error "node %s raised %s with message '%s'" % [node, err.class, err.message]
           rescue Resolv::ResolvError => err
